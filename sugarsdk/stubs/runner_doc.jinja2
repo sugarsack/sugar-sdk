@@ -1,0 +1,24 @@
+module:
+  name: {{ mod_name }}
+  author: {{ mod_author }}
+  summary: {{ mod_summary }}
+  synopsis: >
+    {{ mod_synopsis }}
+  since_version: {{ sugar_version }}
+
+tasks:
+  my_function:
+    description:
+      - Write documentation what this function does here.
+      - Each sentence in the future documentation is another item in this list.
+    parameters:
+      name:
+        description:
+          - Parameter "name" does this and that.
+          - Each sentence in the future documentation is another item in this list.
+        required: true
+        default: null
+        type: str
+    returns:
+      # Your structure starts here
+      # Look at other modules for examples

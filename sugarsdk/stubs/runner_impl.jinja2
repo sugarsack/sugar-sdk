@@ -1,0 +1,36 @@
+# coding: utf-8
+"""
+This is the description of your module.
+Please make a better one.
+"""
+{% if mod_namespace == mod_name %}
+from sugar.modules.{{ mod_type }}.{{ mod_name }}.interface import {{ mod_name.title() }}Interface
+{% else %}
+from sugar.modules.{{ mod_type }}.{{ mod_namespace }}.{{ mod_name }}.interface import {{ mod_name.title() }}Interface
+{% endif %}
+
+class {{ mod_name.title() }}Module({{ mod_name.title() }}Interface):
+    """
+    Module description
+    """
+
+    def hello(self, name: str) -> str:
+        """
+        This is not a documentation for the end user.
+        This is just an internal documentation for developers.
+
+        :returns: string with the hello name.
+        """
+
+        return "Hello, {}!".format(name)
+
+
+
+"""
+Delete this guide.
+
+1. Override and implement all the methods from your interface. They will be public.
+
+2. Methods that are not in the interface will not be visible 'outside', so no need
+   to add "_" in front of the method name to conceal it, if you don't want to.
+"""

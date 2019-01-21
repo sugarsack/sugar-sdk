@@ -1,0 +1,19 @@
+# coding: utf-8
+"""
+Interface to the module '{{ mod_name }}'.
+Please change this docstring for a better one.
+"""
+import abc
+
+
+class {{ mod_name.title() }}Interface(metaclass=abc.ABCMeta):
+    """
+    Interface of the module '{{ mod_name }}'.
+    """
+
+    def hello(self, name:str) -> str:
+        """
+        Hello world function.
+
+        :returns: string with the name
+        """
