@@ -1,1 +1,2 @@
 include *.rst
+include sugarsdk/stubs/*jinja2

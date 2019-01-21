@@ -27,8 +27,8 @@ def read(fname):
 
 setup(
     name='sugarsack-sdk',
-    version='0.0.2',
-    packages=['sugarsdk'],
+    version='0.0.3',
+    packages=['sugarsdk', 'sugarsdk.stubs'],
     url='https://github.com/sugarsack/sugar-sdk',
     license='Apache 2.0',
     author='Bo Maryniuk',
