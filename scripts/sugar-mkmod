@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+import platform
+import argparse
+import sugar.lib.exceptions
+from sugarsdk.modgen import ModuleGenerator
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--name", help="Name of the module with the namespace. Example: 'foo.bar.mymodule'.")
+    parser.add_argument("-t", "--type", help="Type of the module.", choices=["runner", "state"])
+    parser.add_argument("-i", "--impl", help="Imlementation name. Default: {}".format(platform.system().lower()),
+                        default=platform.system().lower())
+    args = parser.parse_args()
+
+    try:
+        modgen = ModuleGenerator(args)
+        modgen.generate()
+    except sugar.lib.exceptions.SugarException as exc:
+        parser.print_help()
+        print("\n{}\n".format(exc))
+
+if __name__ == "__main__":
+    main()
