@@ -2,21 +2,32 @@
 
 import os
 import sys
-import platform
-import argparse
-import sugar.modules.states
-import sugar.modules.runners
-import sugar.lib.exceptions
 import jinja2
+
+import sugarsdk
+
+try:
+    import sugar.modules.states
+    import sugar.modules.runners
+    import sugar.lib.exceptions
+except ImportError:
+    raise ImportError("Sugar SDK makes no sense without Sugar installed.")
 
 
 class BaseModuleResource:
     """
+    Base resource finder.
     """
-    def __init__(self, sdk_root):
-        self._sdk_root = sdk_root
+    def __init__(self):
+        self._sdk_root = os.path.dirname(sugarsdk.__file__)
 
     def _get_template(self, name):
+        """
+        Get a jinja template.
+
+        :param name:
+        :return:
+        """
         with open(os.path.join(self._sdk_root, "stubs/{}.jinja2".format(name))) as thl:
             return thl.read()
 
@@ -26,14 +37,17 @@ class BaseModuleResource:
         """
         return jinja2.Template(self._get_template("{}_{}".format(prefix, resource))).render(**namespace)
 
+
 class StateModuleResources(BaseModuleResource):
     """
+    State module resource finder.
     """
-    def get_resource(self, resource):
+    def get_resource(self, resource, namespace):
         """
         Get corresponding resource and apply the namespace.
         """
         return self._get_common_resource("state", resource, namespace)
+
 
 class RunnerModuleResources(BaseModuleResource):
     """
@@ -47,6 +61,10 @@ class RunnerModuleResources(BaseModuleResource):
 
 
 class ModuleGenerator:
+    """
+    Module generator.
+    """
+
     RS_DOCUMENTATION = "doc"
     RS_EXAMPLES = "examples"
     RS_INIT = "init"
@@ -55,8 +73,8 @@ class ModuleGenerator:
 
     def __init__(self, args):
         self._cli_args = args
-        self.rs_runner = RunnerModuleResources(sdk_root="./sugar-sdk")
-        self.rs_state = StateModuleResources(sdk_root="./sugar-sdk")
+        self.rs_runner = RunnerModuleResources()
+        self.rs_state = StateModuleResources()
 
     def _get_module_path(self):
         """
@@ -104,7 +122,6 @@ class ModuleGenerator:
             resource = getattr(self, "rs_{}".format(self._cli_args.type)).get_resource(rs_name, namespace)
             with open(os.path.join(root, name_map[rs_name]), "w") as h_res:
                 h_res.write(resource)
-            #print(root, name_map[rs_name])
         except Exception as exc:
             print("Failed to process '{}': {}".format(rs_name, exc))
             sys.exit(1)
@@ -143,4 +160,4 @@ class ModuleGenerator:
         mod_path = self._get_module_path()
         self._create_tree(mod_path)
         self._add_inits_over(mod_path)
-        print("generated to", mod_path)
+        print("Module has been generated to", mod_path)
