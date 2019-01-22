@@ -27,7 +27,7 @@ def read(fname):
 
 setup(
     name='sugarsack-sdk',
-    version='0.0.4',
+    version='0.0.5',
     packages=['sugarsdk',
               'sugarsdk.stubs',
               "sugarsdk.linting",
