@@ -19,10 +19,14 @@ class {{ mod_name.title() }}Module({{ mod_name.title() }}Interface):
         This is not a documentation for the end user.
         This is just an internal documentation for developers.
 
+        :param name: name to greetings
         :returns: string with the hello name.
         """
 
-        return "Hello, {}!".format(name)
+        result = self.new_result()
+        result["text"] = "Hello, {}!".format(name)
+
+        return result
 
 
 

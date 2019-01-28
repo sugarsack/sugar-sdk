@@ -4,16 +4,19 @@ Interface to the module '{{ mod_name }}'.
 Please change this docstring for a better one.
 """
 import abc
+from sugar.utils.absmod import BaseRunnerModule
 
 
-class {{ mod_name.title() }}Interface(metaclass=abc.ABCMeta):
+class {{ mod_name.title() }}Interface(abc.ABC, BaseRunnerModule):
     """
     Interface of the module '{{ mod_name }}'.
     """
 
+    @abc.abstractmethod
     def hello(self, name:str) -> str:
         """
         Hello world function.
 
+        :param name: the name for the greeting
         :returns: string with the name
         """
