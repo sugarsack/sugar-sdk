@@ -114,7 +114,7 @@ class ModuleGenerator:
             "init": "__init__.py",
             "examples": "examples.yaml",
             "doc": "doc.yaml",
-            "impl": "{}.py".format(self._cli_args.impl),
+            "impl": "{}.py".format(self._cli_args.impl if self._cli_args.type == "runner" else "impl"),
             "interface": "interface.py"
         }
 
