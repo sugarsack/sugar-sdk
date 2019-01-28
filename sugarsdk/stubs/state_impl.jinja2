@@ -1,0 +1,44 @@
+# coding: utf-8
+"""
+This is the description of your module.
+Please make a better one.
+"""
+# pylint:disable=W0613
+
+from sugar.utils.absmod import BaseStateModule
+{% if mod_namespace == mod_name %}
+from sugar.modules.{{ mod_type }}.{{ mod_name }}.interface import {{ mod_name.title() }}Interface
+{% else %}
+from sugar.modules.{{ mod_type }}.{{ mod_namespace }}.{{ mod_name }}.interface import {{ mod_name.title() }}Interface
+{% endif %}
+
+class {{ mod_name.title() }}State(BaseStateModule):
+    """
+    State for the hello module.
+    """
+
+    # State modules aren't virtual, thus they
+    # do not require an interface,
+    # like those runner modules.
+
+    def greeted(self, name: str) -> str:
+        """
+        Hello world state module example.
+
+        :param name: state ID (unused here)
+        :param args: arguments
+        :param kwargs: keywords
+        :returns: return JSON object
+        """
+
+        # Sugar modules are already available here.
+        # For example, to call "system.test" module within
+        # the state module, use "self.modules" attribute:
+
+        result = self.modules.system.test.ping("Pong from {}".format(self.traits.data["host"]))
+
+        # Result should be formatted at the end into
+        # an acceptable structure and verified afterwards.
+        # Use "self.to_return" method for doing this:
+
+        return self.to_return(result=result)

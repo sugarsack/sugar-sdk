@@ -1,0 +1,23 @@
+module:
+  name: {{ mod_name }}
+  author: {{ mod_author }}
+  summary: {{ mod_summary }}
+  synopsis: >
+    {{ mod_synopsis }}
+  since_version: {{ sugar_version }}
+
+tasks:
+  greeted:
+    description:
+      - Write documentation what this greeting does
+      - Each sentence in the future documentation is another item in this list.
+    parameters:
+      text:
+        description:
+          - Parameter "text" does this and that.
+          - Each sentence in the future documentation is another item in this list.
+        required: false
+        default: null
+        type: str
+    returns:
+      text: str
