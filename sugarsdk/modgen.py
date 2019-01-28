@@ -86,7 +86,7 @@ class ModuleGenerator:
         if self._cli_args.type == "runner":
             path = sugar.modules.runners.__file__
         elif self._cli_args.type == "state":
-            path = sugar.modules.runners.__file__
+            path = sugar.modules.states.__file__
         else:
             raise sugar.lib.exceptions.SugarException("Type expected either to be 'runner' or 'state'.")
         if not self._cli_args.name:
@@ -102,8 +102,8 @@ class ModuleGenerator:
         mod_namespace = self._cli_args.name.rsplit(".", 1)[0]
         namespace = {
             "mod_name": mod_name,
-            "mod_author": "You Great <you@great.org>",
-            "mod_summary": "One-liner about what your module is about",
+            "mod_author": "Your Name <your@name.org>",
+            "mod_summary": "Greeting module",
             "mod_synopsis": "Some more lines about this module.",
             "mod_type": "{}s".format(self._cli_args.type),
             "sugar_version": "0.0.0",
@@ -139,9 +139,9 @@ class ModuleGenerator:
             if root.endswith(mod_type):
                 break
 
-    def _create_tree(self, root):
+    def _create_runner_tree(self, root):
         """
-        Create a tree of the module, if it does not exists yet.
+        Create a tree of the state module, if it does not exists yet.
         """
 
         if not os.path.exists(root):
@@ -152,12 +152,33 @@ class ModuleGenerator:
             os.mkdir(root)
             self._add_resource(root, self.RS_INIT)
             self._add_resource(root, self.RS_IMPLEMENTATION)
+        else:
+            raise IOError("Path '{}' already exists".format(root))
+
+    def _create_state_tree(self, root):
+        """
+        Create a tree of the state module, if if does not exists yet.
+
+        :param root:
+        :return:
+        """
+        if not os.path.exists(root):
+            os.makedirs(root)
+            for rs_name in [self.RS_INIT, self.RS_EXAMPLES, self.RS_DOCUMENTATION, self.RS_IMPLEMENTATION]:
+                self._add_resource(root, rs_name)
+        else:
+            raise IOError("Path '{}' already exists".format(root))
 
     def generate(self):
         """
         Generate a module (runner or state).
         """
         mod_path = self._get_module_path()
-        self._create_tree(mod_path)
+        if self._cli_args.type == "runner":
+            self._create_runner_tree(mod_path)
+            print("Runner module has been generated to", mod_path)
+        elif self._cli_args.type == "state":
+            self._create_state_tree(mod_path)
+            print("State module has been generated to", mod_path)
+
         self._add_inits_over(mod_path)
-        print("Module has been generated to", mod_path)
