@@ -9,6 +9,7 @@ and checks if the external documentation, schemas etc
 looks legit.
 """
 import os
+import sys
 import astroid
 
 import sugar.modules.runners
@@ -18,7 +19,7 @@ import sugar.utils.files
 from sugar.lib.compat import yaml
 from sugar.lib.loader.virtual import VirtualModuleLoader
 from sugar.lib.loader.simple import SimpleModuleLoader
-from sugar.lib.outputters.console import ConsoleMessages
+from sugar.lib.outputters.console import ConsoleMessages, TitleOutput
 
 
 class ModuleValidator:
@@ -30,6 +31,12 @@ class ModuleValidator:
         self._runner_module_loader = VirtualModuleLoader(sugar.modules.runners)
         self._state_module_loader = SimpleModuleLoader(sugar.modules.states)
         self._console = ConsoleMessages()
+
+        self._title = TitleOutput()
+        self._title.add("validation", "info")
+        self._title.add("information", "info")
+        self._title.add("warnings", "warning")
+        self._title.add("errors", "alert")
 
         self.infos = []
         self.warnings = []
@@ -51,8 +58,7 @@ class ModuleValidator:
 
         for metafile in [doc_path, xpl_path, scm_path]:
             if not os.path.exists(metafile):
-                self.errors.append("{} module at '{}' is missing '{}' file!".format(
-                    mod_type.title(), uri, metafile))
+                self.errors.append(("{} module at '{}' is missing '{}' file!", (mod_type.title(), uri, metafile)))
 
         meta = {}
         for metakey, metafile in [("doc", doc_path), ("example", xpl_path), ("scheme", scm_path)]:
@@ -61,8 +67,8 @@ class ModuleValidator:
                     meta[metakey] = yaml.load(mth.read())
                 except Exception as exc:
                     meta[metakey] = None
-                    self.warnings.append("'{}' in {} module seems broken ({})".format(
-                        os.path.basename(metafile), mod_type, exc))
+                    self.warnings.append(("'{}' in {} module seems broken ({})",
+                                          (os.path.basename(metafile), mod_type, exc)))
         return meta
 
     def _get_runner_interface(self, uri):
@@ -119,13 +125,13 @@ class ModuleValidator:
 
         tasks = doc.get("tasks")
         if tasks is None:
-            self.errors.append("Documentation in '{}' {} module has no 'tasks' section".format(uri, mod_type))
+            self.errors.append(("Documentation in '{}' {} module has no 'tasks' section", (uri, mod_type)))
 
         ifc_method_names = set()
         for mtd in methods:
             ifc_method_names.add(mtd.name)
             if mtd.name not in tasks:
-                self.errors.append("Function '{}' is not documented in {} module".format(mtd.name, mod_type))
+                self.errors.append(("Function '{}' is not documented in {} module", (mtd.name, mod_type)))
             is_abstract = False
             if mtd.decorators is not None:
                 for decorator in mtd.decorators.nodes:
@@ -133,15 +139,15 @@ class ModuleValidator:
                         is_abstract = True
                         break
             if not is_abstract:
-                self.errors.append("Function '{}' is not abstract in the {} module interface".format(mtd.name, mod_type))
+                self.errors.append(("Function '{}' is not abstract in the {} module interface", (mtd.name, mod_type)))
 
             self._common_cmp_signature(uri, mtd, tasks.get(mtd.name, {}))
 
         for task in tasks:
             if task not in ifc_method_names:
-                self.errors.append("Documentation in '{}' {} module contains superfluous data. "
-                                   "The interface has less methods than "
-                                   "the documentation describes".format(uri, mod_type))
+                self.errors.append(("Documentation in '{}' {} module contains superfluous data. "
+                                    "The interface has less methods than "
+                                    "the documentation describes", (uri, mod_type)))
                 break
 
         self._console.info("Verifying examples")
@@ -157,26 +163,28 @@ class ModuleValidator:
         """
         mod_type = self._cli_args.type
         if "parameters" not in doc:
-            self.errors.append("Documentation of the {} module '{}' has no parameters section".format(mod_type, uri))
+            self.errors.append(("Documentation of the {} module '{}' has no parameters section", (mod_type, uri)))
 
         if node.args.vararg:
-            self.infos.append("Not so good: implicit arguments (varargs) are discouraged. "
-                              "Consider explicitly defining your parameters instead, or make few more methods.")
+            self.infos.append(("Not so good: implicit arguments (varargs) are discouraged. "
+                               "Consider explicitly defining your parameters instead, "
+                               "or make few more methods.", ()))
         if node.args.kwarg:
-            self.infos.append("Not so good: implicit keyword arguments are discouraged. "
-                              "Consider explicitly defining your keyword parameters or split to more methods.")
+            self.infos.append(("Not so good: implicit keyword arguments are discouraged. "
+                               "Consider explicitly defining your keyword parameters "
+                               "or split to more methods.", ()))
         node_args = []
         for arg in node.args.args:
             if arg.name in ["self", "cls"]:
                 continue
             elif arg.name not in doc.get("parameters", {}):
-                self.errors.append("Documentation of the {} module '{}' "
-                                   "should explain what parameter '{}' in function '{}' is for.".format(
-                                       mod_type, uri, arg.name, node.name))
+                self.errors.append(("Documentation of the {} module '{}' "
+                                    "should explain what parameter '{}' in function '{}' is for.",
+                                    (mod_type, uri, arg.name, node.name)))
             elif "description" not in doc.get("parameters", {}).get(arg.name, {}):
-                self.errors.append("Documentation of the {} module '{}' "
-                                   "is missing description of the parameter '{}' in function '{}'.".format(
-                                       mod_type, uri, arg.name, node.name))
+                self.errors.append(("Documentation of the {} module '{}' "
+                                    "is missing description of the parameter '{}' in function '{}'.",
+                                    (mod_type, uri, arg.name, node.name)))
             node_args.append(arg)
         # Get a map of non-required attrs in signature
         sig_defaults = list(dict(zip([arg.name for arg in node_args][::-1],
@@ -188,18 +196,20 @@ class ModuleValidator:
         for p_name, p_doc in doc.get("parameters", {}).items():
             if p_name in sig_default_values:
                 if p_doc.get("default") != sig_default_values.get(p_name):
-                    self.warnings.append("Parameter '{}' in task '{}' of the {} module '{}' "
-                                         "should be documented as default to '{}'.".format(
-                        p_name, node.name, mod_type, uri, sig_default_values.get(p_name)))
+                    self.warnings.append(("Parameter '{}' in task '{}' of the {} module '{}' "
+                                          "should be documented as default to '{}'.",
+                                          (p_name, node.name, mod_type, uri, sig_default_values.get(p_name))))
             doc_req[p_name] = p_doc.get("required", False)
 
         for arg in node_args:
             if arg.name not in sig_defaults and not doc_req.get(arg.name, False):
-                self.errors.append("Argument '{}' of the function '{}' in the {} module "
-                                   "'{}' should be documented as required.".format(arg.name, node.name, mod_type, uri))
+                self.errors.append(("Argument '{}' of the function '{}' in the {} module "
+                                    "'{}' should be documented as required.",
+                                    (arg.name, node.name, mod_type, uri)))
             elif arg.name in sig_defaults and doc_req.get(arg.name, True):
-                self.errors.append("Argument '{}' of the function '{}' in the {} module "
-                                   "'{}' should be documented as optional.".format(arg.name, node.name, mod_type, uri))
+                self.errors.append(("Argument '{}' of the function '{}' in the {} module "
+                                    "'{}' should be documented as optional.",
+                                    (arg.name, node.name, mod_type, uri)))
 
     def _runner_cmp_impl(self, ifc, impl, uri):
         """
@@ -244,6 +254,7 @@ class ModuleValidator:
 
         :return: None
         """
+        sys.stdout.write(self._title.paint("validation") + os.linesep)
         ret = False
         if self._cli_args.all:
             self._console.warning("Validation of {} is not yet implemented", "all modules")
@@ -268,13 +279,21 @@ class ModuleValidator:
 
         :return:
         """
-        self._console.info("\nReport:\n")
-        for idx, msg in enumerate(self.infos):
-            self._console.info("  {}. {}".format(idx + 1, msg))
-        for idx, msg in enumerate(self.warnings):
-            self._console.warning("  {}. {}".format(idx + 1, msg))
-        for idx, msg in enumerate(self.errors):
-            self._console.error("  {}. {}".format(idx + 1, msg))
+        print()
+        if self.infos:
+            sys.stdout.write(self._title.paint("information") + os.linesep)
+        for msg, args in self.infos:
+            self._console.info(msg, *args)
+        if self.warnings:
+            print()
+            sys.stdout.write(self._title.paint("warnings") + os.linesep)
+        for msg, args in self.warnings:
+            self._console.warning(msg, *args)
+        if self.errors:
+            print()
+            sys.stdout.write(self._title.paint("errors") + os.linesep)
+        for msg, args in self.errors:
+            self._console.error(msg, *args)
 
         failed = int(bool(self.errors + self.warnings))
         if not failed:
