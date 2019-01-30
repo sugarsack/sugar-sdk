@@ -135,8 +135,7 @@ class ModuleValidator:
             if not is_abstract:
                 self.errors.append("Function '{}' is not abstract in the {} module interface".format(mtd.name, mod_type))
 
-            # TODO: probably adjust documentation here!
-            print(mtd.args)
+            self._common_cmp_signature(uri, mtd, tasks.get(mtd.name, {}))
 
         for task in tasks:
             if task not in ifc_method_names:
@@ -147,6 +146,60 @@ class ModuleValidator:
 
         self._console.info("Verifying examples")
         examples = meta.get("examples")
+
+    def _common_cmp_signature(self, uri, node, doc):
+        """
+        Compare if the function is the same as the documentation.
+
+        :param node: astroid function node object
+        :param doc: documentation for that node
+        :return: None
+        """
+        mod_type = self._cli_args.type
+        if "parameters" not in doc:
+            self.errors.append("Documentation of the {} module '{}' has no parameters section".format(mod_type, uri))
+
+        if node.args.vararg:
+            self.infos.append("Not so good: implicit arguments (varargs) are discouraged. "
+                              "Consider explicitly defining your parameters instead, or make few more methods.")
+        if node.args.kwarg:
+            self.infos.append("Not so good: implicit keyword arguments are discouraged. "
+                              "Consider explicitly defining your keyword parameters or split to more methods.")
+        node_args = []
+        for arg in node.args.args:
+            if arg.name in ["self", "cls"]:
+                continue
+            elif arg.name not in doc.get("parameters", {}):
+                self.errors.append("Documentation of the {} module '{}' "
+                                   "should explain what parameter '{}' in function '{}' is for.".format(
+                                       mod_type, uri, arg.name, node.name))
+            elif "description" not in doc.get("parameters", {}).get(arg.name, {}):
+                self.errors.append("Documentation of the {} module '{}' "
+                                   "is missing description of the parameter '{}' in function '{}'.".format(
+                                       mod_type, uri, arg.name, node.name))
+            node_args.append(arg)
+        # Get a map of non-required attrs in signature
+        sig_defaults = list(dict(zip([arg.name for arg in node_args][::-1],
+                                     [False for item in node.args.defaults])).keys())
+        sig_default_values = dict(zip([arg.name for arg in node_args][::-1],
+                                      [item.value for item in node.args.defaults]))
+        # Get a map of required attrs in doc
+        doc_req = {}
+        for p_name, p_doc in doc.get("parameters", {}).items():
+            if p_name in sig_default_values:
+                if p_doc.get("default") != sig_default_values.get(p_name):
+                    self.warnings.append("Parameter '{}' in task '{}' of the {} module '{}' "
+                                         "should be documented as default to '{}'.".format(
+                        p_name, node.name, mod_type, uri, sig_default_values.get(p_name)))
+            doc_req[p_name] = p_doc.get("required", False)
+
+        for arg in node_args:
+            if arg.name not in sig_defaults and not doc_req.get(arg.name, False):
+                self.errors.append("Argument '{}' of the function '{}' in the {} module "
+                                   "'{}' should be documented as required.".format(arg.name, node.name, mod_type, uri))
+            elif arg.name in sig_defaults and doc_req.get(arg.name, True):
+                self.errors.append("Argument '{}' of the function '{}' in the {} module "
+                                   "'{}' should be documented as optional.".format(arg.name, node.name, mod_type, uri))
 
     def _runner_cmp_impl(self, ifc, impl, uri):
         """
