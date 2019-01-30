@@ -84,20 +84,29 @@ class ModuleValidator:
             ifc["interface"] = astroid.parse(src_h.read())
         return ifc
 
-    def _get_runner_implementations(self, uri):
+    def _get_runner_implementations(self, ifc, uri):
         """
         Get parsed runner implementations source.
 
         :param uri:
         :return:
         """
-        imps = {}
+        for node in ifc["interface"].body:
+            if isinstance(node, astroid.ClassDef):
+                ifc = node
+                break
+        imps = {ifc: []}
         imp_path = os.path.join(self._runner_module_loader.root_path, os.path.sep.join(uri.split(".")), "_impl")
         for fname in os.listdir(imp_path):
             if fname.startswith("_"):
                 continue
             with sugar.utils.files.fopen(os.path.join(imp_path, fname)) as src_h:
-                imps[fname] = astroid.parse(src_h.read())
+                parsed = astroid.parse(src_h.read())
+                for node in parsed.body:
+                    if isinstance(node, astroid.ClassDef):
+                        for node_base in node.bases:
+                            if node_base.name == ifc.name:
+                                imps[ifc].append((node, fname))
         return imps
 
     def _runner_cmp_meta(self, ifc, meta, uri):
@@ -219,15 +228,39 @@ class ModuleValidator:
                                     "'{}' should be documented as optional.",
                                     (arg.name, node.name, mod_type, uri)))
 
-    def _runner_cmp_impl(self, ifc, impl, uri):
+    def _runner_cmp_impl(self, impl: dict, uri: str):
         """
         Compare implementations to the interface.
 
-        :param ifc: interface
-        :param impl: implementations
+        :param impl: interface to implementations map
         :param uri: URI of the module
         :return:
         """
+        ifc = next(iter(impl))
+        ifc_func_names = [node.name for node in ifc.body]
+        for cls_impl, fname in impl[ifc]:
+            impl_func_names = [node.name for node in cls_impl.body]
+            for ifc_fname in ifc_func_names:
+                if ifc_fname not in impl_func_names:
+                    self.errors.append(("Function '{}::{}::{}' is not implemented.",
+                                        (fname, cls_impl.name, ifc_fname)))
+            for impl_f_node in cls_impl.body:
+                for ifc_f_node in ifc.body:
+                    if ifc_f_node.name == impl_f_node.name:
+                        if ifc_f_node.args.vararg != impl_f_node.args.vararg:
+                            self.warnings.append(("Function '{}::{}::{}' has different varargs than the interface.",
+                                                  (fname, cls_impl.name, ifc_f_node.name)))
+                        if ifc_f_node.args.kwarg != impl_f_node.args.kwarg:
+                            self.warnings.append(("Function '{}::{}::{}' has different keyword "
+                                                  "arguments than the interface.",
+                                                  (fname, cls_impl.name, ifc_f_node.name)))
+                        ifc_param_names = [n.name for n in ifc_f_node.args.args if n.name not in ["cls", "self"]]
+                        ipl_param_names = [n.name for n in impl_f_node.args.args if n.name not in ["cls", "self"]]
+                        if ifc_param_names != ipl_param_names:
+                            self.warnings.append(("Function '{}::{}::{}' has different usage parameter names ({}) "
+                                                  "than the interface ({}).",
+                                                  (fname, cls_impl.name, ifc_f_node.name,
+                                                   ", ".join(ipl_param_names), ", ".join(ifc_param_names))))
 
     def _validate_runner_by_uri(self, uri):
         """
@@ -240,11 +273,11 @@ class ModuleValidator:
         self._console.info("  ...get meta ({})", ', '.join(list(meta.keys())))
         interface = self._get_runner_interface(uri)
         self._console.info("  ...get interface")
-        implementations = self._get_runner_implementations(uri)
+        implementations = self._get_runner_implementations(interface, uri)
         self._console.info("  ...get implementations ({})", len(implementations))
 
         self._runner_cmp_meta(interface, meta, uri)
-        self._runner_cmp_impl(interface, implementations, uri)
+        self._runner_cmp_impl(implementations, uri)
 
         self._console.info("Done verification.")
 
