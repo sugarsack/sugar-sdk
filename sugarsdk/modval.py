@@ -219,7 +219,7 @@ class ModuleValidator:
         for idx, msg in enumerate(self.infos):
             self._console.info("  {}. {}".format(idx + 1, msg))
         for idx, msg in enumerate(self.warnings):
-            self._console.warning("  {}. {}".format(id + 1, msg))
+            self._console.warning("  {}. {}".format(idx + 1, msg))
         for idx, msg in enumerate(self.errors):
             self._console.error("  {}. {}".format(idx + 1, msg))
 
