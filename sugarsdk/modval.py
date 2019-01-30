@@ -151,7 +151,15 @@ class ModuleValidator:
                 break
 
         self._console.info("Verifying examples")
-        examples = meta.get("examples")
+        example = meta.get("example")
+        for mt_name in ifc_method_names:
+            if mt_name not in example:
+                self.errors.append(("Example does not contain usage of function '{}'.", (mt_name,)))
+            else:
+                for section in ["commandline", "description", "states"]:
+                    if section not in example[mt_name]:
+                        self.errors.append(("Example does not contain '{}' section in function '{}'.",
+                                            (section, mt_name,)))
 
     def _common_cmp_signature(self, uri, node, doc):
         """
