@@ -27,7 +27,7 @@ def read(fname):
 
 setup(
     name='sugarsack-sdk',
-    version='0.0.6',
+    version='0.0.7',
     packages=['sugarsdk',
               'sugarsdk.stubs',
               "sugarsdk.linting",
@@ -43,6 +43,7 @@ setup(
              "scripts/sugar-killall",
              "scripts/sugar-lint",
              "scripts/sugar-mkmod",
+             "scripts/sugar-valmod",
              ],
     install_requires=["Jinja2",
                       "pylint",
