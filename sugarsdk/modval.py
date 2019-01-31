@@ -319,14 +319,13 @@ class ModuleValidator:
         ret = False
         uris = []
         if self._cli_args.all:
-            self._console.warning("Validation of {} is not yet implemented", "all modules")
             uris = self._get_all_modules_uri()
         elif self._cli_args.name is not None:
             uris.append(self._cli_args.name)
 
         for uri in uris:
             h, w = self._get_terminal_size()
-            print("=" * int(w))
+            print()
             self._console.info("Validating '{}' module", uri)
             print("=" * int(w))
             if self._cli_args.type == "runner":
