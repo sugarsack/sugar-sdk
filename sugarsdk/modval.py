@@ -289,6 +289,26 @@ class ModuleValidator:
         :return: tuple of infos warnings and errors
         """
 
+    def _get_all_modules_uri(self) -> list:
+        """
+        Get all module uri.
+        :return:
+        """
+        uris = []
+        if self._cli_args.type == "runner":
+            uris = list(self._runner_module_loader.map().keys())
+
+        return uris
+
+    def _get_terminal_size(self):
+        """
+        Get linux terminal size.
+
+        :return:
+        """
+        height, width = os.popen("stty size").read().strip().split()
+        return height, width
+
     def validate(self):
         """
         Validate modules.
@@ -297,16 +317,23 @@ class ModuleValidator:
         """
         sys.stdout.write(self._title.paint("validation") + os.linesep)
         ret = False
+        uris = []
         if self._cli_args.all:
             self._console.warning("Validation of {} is not yet implemented", "all modules")
-            ret = True
+            uris = self._get_all_modules_uri()
         elif self._cli_args.name is not None:
-            self._console.info("Validating '{}' module", self._cli_args.name)
+            uris.append(self._cli_args.name)
+
+        for uri in uris:
+            h, w = self._get_terminal_size()
+            print("=" * int(w))
+            self._console.info("Validating '{}' module", uri)
+            print("=" * int(w))
             if self._cli_args.type == "runner":
-                self._validate_runner_by_uri(self._cli_args.name)
-                ret = True
+                self._validate_runner_by_uri(uri)
             elif self._cli_args.type == "state":
-                self._validate_state_by_uri(self._cli_args.name)
+                self._validate_state_by_uri(uri)
+            if not ret:
                 ret = True
 
         if not ret:
