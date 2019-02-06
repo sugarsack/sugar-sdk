@@ -26,29 +26,33 @@ def read(fname):
 
 
 setup(
-    name='sugarsack-sdk',
-    version='0.0.7',
-    packages=['sugarsdk',
-              'sugarsdk.stubs',
-              "sugarsdk.linting",
-              ],
+    name="sugarsack-sdk",
+    version="0.0.8",
+    packages=[
+        "sugarsdk",
+        "sugarsdk.stubs",
+        "sugarsdk.linting",
+    ],
     url='https://github.com/sugarsack/sugar-sdk',
     license='Apache 2.0',
     author='Bo Maryniuk',
     author_email='bo@maryniuk.net',
     description='Sugar SDK',
     long_description=read("README.rst"),
-    scripts=["scripts/sugar-flake",
-             "scripts/sugar-genssl",
-             "scripts/sugar-killall",
-             "scripts/sugar-lint",
-             "scripts/sugar-mkmod",
-             "scripts/sugar-valmod",
-             ],
-    install_requires=["Jinja2",
-                      "pylint",
-                      "astroid"
-                      ],
+    scripts=[
+        "scripts/sugar-flake",
+        "scripts/sugar-genssl",
+        "scripts/sugar-killall",
+        "scripts/sugar-lint",
+        "scripts/sugar-mkmod",
+        "scripts/sugar-valmod",
+        "scripts/sugar-gendoc",
+    ],
+    install_requires=[
+        "Jinja2",
+        "pylint",
+        "astroid"
+    ],
     include_package_data=True,
     classifiers=[
         'Intended Audience :: Developers',
