@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/bo/work/lab/python/virtenv/sugar/bin/python3.5
 
 import argparse
 import sugar.lib.exceptions
@@ -19,11 +19,14 @@ def main():
     parser.add_argument("-f", "--force", help="Overwrite existing documentation files, if any.", action="store_true")
     args = parser.parse_args()
 
-    try:
-        ModuleDocumentationGenerator(args).generate()
-    except sugar.lib.exceptions.SugarException as exc:
-        parser.print_usage()
-        print("\n{}\n".format(exc))
+    if not args.out:
+        parser.print_help()
+    else:
+        try:
+            ModuleDocumentationGenerator(args).generate()
+        except sugar.lib.exceptions.SugarException as exc:
+            parser.print_usage()
+            print("\n{}\n".format(exc))
 
 
 if __name__ == "__main__":
