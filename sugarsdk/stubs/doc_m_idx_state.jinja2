@@ -1,19 +1,16 @@
-``system.test``
-===============
+``{{ m_doc.uri }}``
+==============================
 
-Author(s):
+Author: {{ m_doc.author}}
 
-- John Smith <john@smith.com>
-- Some One <some@one.com>
+{{ m_doc.description }}
 
-Some description about this module. Some description about this module.
-Some description about this module. Some description about this module.
-Some description about this module.
-
-Version added: 0.0.0
+Version added: {{ m_doc.version_added }}
 
 
 .. toctree::
    :maxdepth: 1
 
-   system_test
+{% for mod_f_name in m_doc.f_docs %}
+   {{ mod_f_name }}
+{% endfor %}
