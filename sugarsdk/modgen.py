@@ -5,6 +5,7 @@ import sys
 import jinja2
 
 import sugarsdk
+import sugarsdk.utils
 
 try:
     import sugar.modules.states
@@ -21,21 +22,11 @@ class BaseModuleResource:
     def __init__(self):
         self._sdk_root = os.path.dirname(sugarsdk.__file__)
 
-    def _get_template(self, name):
-        """
-        Get a jinja template.
-
-        :param name:
-        :return:
-        """
-        with open(os.path.join(self._sdk_root, "stubs/{}.jinja2".format(name))) as thl:
-            return thl.read()
-
     def _get_common_resource(self, prefix, resource, namespace):
         """
         Get corresponding resource and apply the namespace.
         """
-        return jinja2.Template(self._get_template("{}_{}".format(prefix, resource))).render(**namespace)
+        return jinja2.Template(sugarsdk.utils.get_template("{}_{}".format(prefix, resource))).render(**namespace)
 
 
 class StateModuleResources(BaseModuleResource):
