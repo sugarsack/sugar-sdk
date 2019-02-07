@@ -1,12 +1,14 @@
 ``{{ f_doc.uri}}``
-=================================================
+{{ "=" * (len(f_doc.uri) + 4) }}
 
-{{ f_doc.description }}
+{{ " ".join(f_doc.description) }}
 
 Parameters
 ^^^^^^^^^^
 
 {{ f_doc.t_params }}
+
+{{ f_doc.example_description }}
 
 Usage in the CLI
 ----------------
