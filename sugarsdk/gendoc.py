@@ -5,8 +5,16 @@ Module documentation generator.
 Generates sort of online book out of the validated modules
 and their documentaiton.
 """
+
+import jinja2
+
+import sugarsdk.utils
+import sugar.utils.files
+
 from sugar.components.docman.docrnd import ModDocBase
 from sugar.components.docman.jinfilters import JinjaRstFilters
+from sugar.lib.loader import SugarModuleLoader
+from sugar.lib.outputters.console import ConsoleMessages
 
 
 class ModRSTDoc(ModDocBase):
@@ -15,6 +23,14 @@ class ModRSTDoc(ModDocBase):
     """
     filters = JinjaRstFilters()
 
+    def get_function_manual(self, f_name: str) -> str:
+        """
+        Get function manual.
+
+        :param f_name:
+        :return: rendered manual data
+        """
+        return ""
 
     def get_module_toc(self) -> str:
         """
