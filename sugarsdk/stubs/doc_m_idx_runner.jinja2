@@ -1,5 +1,5 @@
-``{{ m_doc.uri }}``
-==============================
+``{{ m_doc.uri }}`` - {{ m_doc.summary }}
+{{ "=" * (len(m_doc.uri + m_doc.summary) + 7) }}
 
 Author: {{ m_doc.author}}
 
@@ -11,6 +11,5 @@ Version added: {{ m_doc.version_added }}
 .. toctree::
    :maxdepth: 1
 
-{% for mod_f_name in m_doc.f_docs %}
-   {{ mod_f_name }}
-{% endfor %}
+   {% for mod_f_name in m_doc.f_docs %}{{ mod_f_name }}
+   {% endfor %}
