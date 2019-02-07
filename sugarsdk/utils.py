@@ -5,7 +5,7 @@ General utilities for the performing generic tasks.
 import os
 
 
-def get_template(self, name):
+def get_template(name):
     """
     Get a jinja template.
 
