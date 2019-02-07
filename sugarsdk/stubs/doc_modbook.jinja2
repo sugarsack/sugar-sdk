@@ -1,0 +1,36 @@
+Module Reference
+================
+
+Sugar Module reference.
+
+Runner Modules
+--------------
+
+Runner modules are Python/Cython modules that contains functions,
+which are used to perform an actual call from Sugar.
+
+.. toctree::
+   :maxdepth: 2
+
+   {% for mod_name in mod_toc.mod_runner %}{{ mod_name }}
+   {% endfor %}
+State Modules
+-------------
+
+State modules are Python/Cython modules that are used to define
+and then perform Sugar states.
+
+.. toctree::
+   :maxdepth: 2
+
+   {% for mod_name in mod_toc.mod_state %}{{ mod_name }}
+   {% endfor %}
+Info About Custom Modules
+-------------------------
+
+Description what custom modules are.
+
+.. toctree::
+   :maxdepth: 2
+
+   custom_modules_doc_display
