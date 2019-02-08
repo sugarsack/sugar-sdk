@@ -1,21 +1,13 @@
 ``{{ f_doc.uri}}``
-=================================================
+{{ "=" * (len(f_doc.uri) + 4) }}
 
-{{ f_doc.description }}
+{{ " ".join(f_doc.description) }}
 
 Parameters
 ^^^^^^^^^^
 
 {{ f_doc.t_params }}
 
-Usage in the CLI
-----------------
-
-.. code-block:: bash
-   :caption: {{ f_doc.cli_caption }}
-   :name: {{ f_doc.cli_caption_anchor }}
-
-{{ f_doc.cli_example }}
 
 Usage in state
 --------------
@@ -25,8 +17,3 @@ Usage in state
    :name: {{ f_doc.state_caption_anchor }}
 
 {{ f_doc.state_example }}
-    
-Function return data
---------------------
-
-{{ f_doc.t_return_data }}
