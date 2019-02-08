@@ -13,22 +13,29 @@ Parameters
 Usage in the CLI
 ----------------
 
+Here is an example how to call this function directly from the
+command line interface across all clients that matches the criteria:
+
 .. code-block:: bash
-   :caption: {{ f_doc.cli_caption }}
-   :name: {{ f_doc.cli_caption_anchor }}
 
 {{ f_doc.cli_example }}
 
+{% if f_doc.state_example %}
 Usage in state
 --------------
 
+Example usage of this function in the state DSL data structure:
+
 .. code-block:: yaml
-   :caption: {{ f_doc.state_caption }}
-   :name: {{ f_doc.state_caption_anchor }}
 
 {{ f_doc.state_example }}
-    
-Function return data
---------------------
+{% endif %}
+
+{% if f_doc.t_return_data %}
+Return structure
+----------------
+
+.. code-block:: json
 
 {{ f_doc.t_return_data }}
+{% endif %}
