@@ -6,7 +6,11 @@
 Parameters
 ^^^^^^^^^^
 
+{% if f_doc.t_params %}
 {{ f_doc.t_params }}
+{% else %}
+This function takes no parameters.
+{% endif %}
 
 
 Usage in state

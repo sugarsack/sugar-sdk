@@ -73,7 +73,8 @@ class ModRSTDoc(ModDocBase):
         tbl = terminaltables.AsciiTable(table_data=table_data)
         tbl.inner_row_border = True
         f_docmap = self._docmap.get("doc", {}).get("tasks", {}).get(f_name, {})
-        for param in f_docmap.get("parameters", {}):
+        defined_parameters = f_docmap.get("parameters", {})
+        for param in defined_parameters:
             param_data = f_docmap["parameters"][param]
             _req = "**required**" if param_data.get("required") else "*optional*"
             _type = "type: ``{}``".format(param_data.get("type", "*object*"))
@@ -84,7 +85,7 @@ class ModRSTDoc(ModDocBase):
                     self._br(self._wrap_description(param_data.get("description", "")))
                 ]
             )
-        return self._to_rst_header_table(tbl.table)
+        return self._to_rst_header_table(tbl.table) if defined_parameters else None
 
     def _get_cli_example_usage(self, f_name: str) -> tuple:
         """
@@ -113,7 +114,6 @@ class ModRSTDoc(ModDocBase):
             out = textwrap.indent(examples, "   ")
         else:
             out = None
-
         return out
 
     def _get_return_data_json(self, f_name: str) -> str:
@@ -125,7 +125,6 @@ class ModRSTDoc(ModDocBase):
         """
         interface = next(iter(self._docmap.get("scheme", {})))
         data = self._docmap.get("scheme", {}).get(interface, {}).get(f_name, {})
-
         return textwrap.indent(json.dumps(data, indent=4, sort_keys=True), "   ") if data else None
 
     def get_function_manual(self, f_name: str) -> str:
@@ -150,7 +149,7 @@ class ModRSTDoc(ModDocBase):
             "state_caption_anchor": "{}_{}_state_example".format(self._mod_uri.replace(".", "_"), f_name),
             "state_example": self._get_state_example_usage(f_name=f_name),
             "t_params": self._get_params_table(f_name=f_name),
-            "t_return_data": self._get_return_data_json(f_name=f_name),
+            "t_return_data": self._get_return_data_json(f_name=f_name) if self._mod_type == "runner" else None,
         })
 
         return jinja2.Template(template).render(f_doc=f_doc, len=len)
