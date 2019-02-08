@@ -44,7 +44,20 @@ class ModRSTDoc(ModDocBase):
         :param descr: description
         :return: wrapped description
         """
-        return " ".join(textwrap.wrap(" ".join(descr), 40))
+        return os.linesep.join(textwrap.wrap(" ".join(descr), 70))
+
+    def _br(self, data):
+        """
+        Brake lines with <br/>.
+
+        :param data: any multi-line data.
+        :return: line with breaks
+        """
+        out = []
+        for line in data.split(os.linesep):
+            out.append(" | {}".format(line))
+
+        return os.linesep.join(out)
 
     def _get_params_table(self, f_name: str) -> str:
         """
