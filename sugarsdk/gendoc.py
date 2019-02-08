@@ -6,6 +6,7 @@ Generates sort of online book out of the validated modules
 and their documentaiton.
 """
 import os
+import json
 import jinja2
 import textwrap
 
@@ -75,15 +76,14 @@ class ModRSTDoc(ModDocBase):
         for param in f_docmap.get("parameters", {}):
             param_data = f_docmap["parameters"][param]
             _req = "**required**" if param_data.get("required") else "*optional*"
-            _type = "type: ```{}```".format(param_data.get("type", "*object*"))
-            _opt = "" if "default" not in param_data else "\n\ndefault: ```{}```".format(param_data["default"])
+            _type = "type: ``{}``".format(param_data.get("type", "*object*"))
+            _opt = "" if "default" not in param_data else "\n | default: ``{}``".format(param_data["default"])
             table_data.append(
                 [
-                    "```{p}```\n\n{r}\n\n{t}{o}".format(p=param, r=_req, t=_type, o=_opt),
-                    self._wrap_description(param_data.get("description", "N/A"))
+                    " ``{p}``\n\n | {r}\n | {t}{o}".format(p=param, r=_req, t=_type, o=_opt),
+                    self._br(self._wrap_description(param_data.get("description", "")))
                 ]
             )
-
         return self._to_rst_header_table(tbl.table)
 
     def _get_cli_example_usage(self, f_name: str) -> tuple:
@@ -104,16 +104,25 @@ class ModRSTDoc(ModDocBase):
         :param f_name: function name.
         :return: state example usage string
         """
-        examples = self._docmap.get("examples", {}).get(f_name, {})
-        return textwrap.indent(examples.get("states"), "   ")
+        examples = self._docmap.get("examples", {}).get(f_name, {}).get("states", "")
+        if examples.strip().lower() != "n/a":
+            out = textwrap.indent(examples, "   ")
+        else:
+            out = None
 
-    def _get_return_data_table(self, f_name: str) -> str:
+        return out
+
+    def _get_return_data_json(self, f_name: str) -> str:
         """
-        Get return data table.
+        Get return data JSON.
 
         :param f_name: function name
         :return: rendered table of the returning data
         """
+        interface = next(iter(self._docmap.get("scheme", {})))
+        data = self._docmap.get("scheme", {}).get(interface, {}).get(f_name, {})
+
+        return textwrap.indent(json.dumps(data, indent=4, sort_keys=True), "   ") if data else None
 
     def get_function_manual(self, f_name: str) -> str:
         """
@@ -128,7 +137,7 @@ class ModRSTDoc(ModDocBase):
         example_descr, cli_example = self._get_cli_example_usage(f_name=f_name)
         f_doc = type("fdoc", (), {
             "uri": "{}.{}".format(self._mod_uri, f_name),
-            "description": f_docmap.get("description", "N/A"),
+            "description": f_docmap.get("description", ""),
             "example_description": example_descr,
             "cli_caption": "Command line",
             "cli_caption_anchor": "{}_{}_cli_example".format(self._mod_uri.replace(".", "_"), f_name),
@@ -137,7 +146,7 @@ class ModRSTDoc(ModDocBase):
             "state_caption_anchor": "{}_{}_state_example".format(self._mod_uri.replace(".", "_"), f_name),
             "state_example": self._get_state_example_usage(f_name=f_name),
             "t_params": self._get_params_table(f_name=f_name),
-            "t_return_data": self._get_return_data_table(f_name=f_name),
+            "t_return_data": self._get_return_data_json(f_name=f_name),
         })
 
         return jinja2.Template(template).render(f_doc=f_doc, len=len)
@@ -211,8 +220,6 @@ class ModuleDocumentationGenerator:
                 self.out.info("  - writing function manual for {}".format(doc_func_fname))
                 with sugar.utils.files.fopen("doc_f_{}.rst".format(doc_func_fname), "w") as fh_h:
                     fh_h.write(doc_func_man)
-                    #print(">>>", doc_func_fname)
-                    #print(doc_func_man)
 
         self.out.info("  - write reference TOC ({})", toc_name)
         with sugar.utils.files.fopen("doc_idx_modbook.rst", "w") as mbh:
